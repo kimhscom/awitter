@@ -1,32 +1,26 @@
 import React, { useState, useEffect } from "react";
 import { dbService } from "fbase";
 
-const Home = () => {
+const Home = ({ userObj }) => {
   const [aweet, setAweet] = useState("");
   const [aweets, setAweets] = useState([]);
 
-  const getAweets = async () => {
-    const dbAweets = await dbService.collection("aweets").get();
-
-    dbAweets.forEach((document) => {
-      const aweetObject = {
-        ...document.data(),
-        id: document.id,
-      };
-
-      setAweets((prev) => [aweetObject, ...prev]);
-    });
-  };
-
   useEffect(() => {
-    getAweets();
+    dbService.collection("aweets").onSnapshot((snapshot) => {
+      const aweetArray = snapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setAweets(aweetArray);
+    });
   }, []);
 
   const onSubmit = async (event) => {
     event.preventDefault();
     await dbService.collection("aweets").add({
-      aweet,
+      text: aweet,
       createdAt: Date.now(),
+      creatorId: userObj.uid,
     });
     setAweet("");
   };
@@ -37,8 +31,6 @@ const Home = () => {
     } = event;
     setAweet(value);
   };
-
-  console.log(aweets);
 
   return (
     <div>
@@ -55,7 +47,7 @@ const Home = () => {
       <div>
         {aweets.map((aweet) => (
           <div key={aweet.id}>
-            <h4>{aweet.aweet}</h4>
+            <h4>{aweet.text}</h4>
           </div>
         ))}
       </div>
