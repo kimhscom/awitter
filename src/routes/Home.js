@@ -21,16 +21,26 @@ const Home = ({ userObj }) => {
   const onSubmit = async (event) => {
     event.preventDefault();
 
-    const fileRef = storageService.ref().child(`${userObj.uid}/${uuidv4()}`);
-    const response = await fileRef.putString(attachment, "data_url");
-    console.log(response);
+    let attachmentUrl = "";
 
-    /* await dbService.collection("aweets").add({
+    if (attachment !== "") {
+      const attachmentRef = storageService
+        .ref()
+        .child(`${userObj.uid}/${uuidv4()}`);
+      const response = await attachmentRef.putString(attachment, "data_url");
+      attachmentUrl = await response.ref.getDownloadURL();
+    }
+
+    const aweetObj = {
       text: aweet,
       createdAt: Date.now(),
       creatorId: userObj.uid,
-    });
-    setAweet(""); */
+      attachmentUrl,
+    };
+
+    await dbService.collection("aweets").add(aweetObj);
+    setAweet("");
+    setAttachment("");
   };
 
   const onChange = (event) => {
