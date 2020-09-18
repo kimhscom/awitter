@@ -1,10 +1,16 @@
 import React, { useState } from "react";
+import { dbService } from "fbase";
 
 const Home = () => {
   const [aweet, setAweet] = useState("");
 
-  const onSubmit = (event) => {
+  const onSubmit = async (event) => {
     event.preventDefault();
+    await dbService.collection("aweets").add({
+      aweet,
+      createdAt: Date.now(),
+    });
+    setAweet("");
   };
 
   const onChange = (event) => {
