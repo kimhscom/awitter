@@ -1,30 +1,46 @@
-import React, { useEffect } from "react";
-import { authService, dbService } from "fbase";
+import React, { useState } from "react";
+import { authService } from "fbase";
 import { useHistory } from "react-router-dom";
 
 export default ({ userObj }) => {
+  const [newDisplayName, setNewDisplayName] = useState(userObj.displayName);
+
   const history = useHistory();
+
   const onLogOutClick = () => {
     authService.signOut();
     history.push("/");
   };
 
-  const getMyAweets = async () => {
-    const aweets = await dbService
-      .collection("aweets")
-      .where("creatorId", "==", userObj.uid)
-      .orderBy("createdAt")
-      .get();
+  const onChange = (event) => {
+    const {
+      target: { value },
+    } = event;
 
-    console.log(aweets.docs.map((doc) => doc.data()));
+    setNewDisplayName(value);
   };
 
-  useEffect(() => {
-    getMyAweets();
-  }, []);
+  const onSubmit = async (event) => {
+    event.preventDefault();
+
+    if (userObj.displayName !== newDisplayName) {
+      await userObj.updateProfile({
+        displayName: newDisplayName,
+      });
+    }
+  };
 
   return (
     <>
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          onChange={onChange}
+          value={newDisplayName}
+          placeholder="Display name"
+        />
+        <input type="submit" value="Update Profile" />
+      </form>
       <button onClick={onLogOutClick}>Log Out</button>
     </>
   );
